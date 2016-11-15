@@ -1,0 +1,13 @@
+*) select 2 dimensions to draw function contours
+*) select one of benchmark functions
+*) select number of dimensions
+*) select mu, lambda
+*) select between models mu+lambda and mu,lambda
+*) select strategies:
+	.) 1/5 success rate
+	.) single sigma
+	.) multiple sigma
+	.) covariance matrix
+*) in covariance matrix mode
+	.) display direction of movement of each point: (x-mu)T(AAT)-1(x-mu), mu = the center of x
+*) in 1/5 succcess rate: the success rate should be configable
