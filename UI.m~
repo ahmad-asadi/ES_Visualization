@@ -44,8 +44,7 @@ end
 % End initialization code - DO NOT EDIT
 
 function initialization()
-    global func_num ;
-    func_num = 1 ;
+
 
 % --- Executes just before UI is made visible.
 function UI_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -380,9 +379,8 @@ function benchmark_Callback(hObject, eventdata, handles)
 % hObject    handle to benchmark (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global func_num ;
 func_num = get(hObject, 'Value') ;
-fprintf('selected benchmark function: %d\n' , func_num) ;
+fprintf('selected benchmark function') ;
 % Hints: contents = cellstr(get(hObject,'String')) returns benchmark contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from benchmark
 
