@@ -47,7 +47,7 @@ while ((k < ite) && (e > maxE))
   if (fy < fx)
     xk(:,k+1) = y;                  % update value of xkm1
     fx        = fy;                 % update value of f(xkm1)
-  else
+  else 
     xk(:,k+1) = xk(:,k);            % retain value of xkm1
   end
   e = abs(obj - fx);              % error

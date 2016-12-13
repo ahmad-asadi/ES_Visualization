@@ -22,7 +22,7 @@ function varargout = UI(varargin)
 
 % Edit the above text to modify the response to help UI
 
-% Last Modified by GUIDE v2.5 28-Nov-2016 14:36:01
+% Last Modified by GUIDE v2.5 13-Dec-2016 10:06:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,9 +43,34 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-function initialization()
+
+% --- Manual Initializations
+function initialization(handles)
     global func_num ;
     func_num = 1 ;
+    global X1 ;
+    global X2 ;
+    X1 = 1 ;
+    X2 = 2 ;
+    
+    global mu ;
+    global lambda ;
+    mu = 1 ;
+    lambda = 1 ;
+    
+    global selectionModel ;
+    selectionModel = 'comma' ;
+    
+    drawContours(handles) ;
+    
+% --- Call for drawing cntours
+function drawContours(handles)
+    global func_num ;
+    global X1 ;
+    global X2 ;
+    global selected_benchmark_function ;
+    axes(handles.contours) ;
+    selected_benchmark_function = drawBenchmarkContours(func_num , X1, X2);
 
 % --- Executes just before UI is made visible.
 function UI_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -54,7 +79,7 @@ function UI_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to UI (see VARARGIN)
-initialization() ; 
+initialization(handles) ; 
 % Choose default command line output for UI
 handles.output = hObject;
 
@@ -383,6 +408,7 @@ function benchmark_Callback(hObject, eventdata, handles)
 global func_num ;
 func_num = get(hObject, 'Value') ;
 fprintf('selected benchmark function: %d\n' , func_num) ;
+drawContours(handles) ;
 % Hints: contents = cellstr(get(hObject,'String')) returns benchmark contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from benchmark
 
@@ -2146,3 +2172,137 @@ function edit63_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function X1_Callback(hObject, eventdata, handles)
+% hObject    handle to X1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global X1 ;
+X1 = str2num(get(hObject, 'String')) ;
+fprintf('contours axes X1 = %d\n' , X1) ;
+drawContours(handles) ;
+% Hints: get(hObject,'String') returns contents of X1 as text
+%        str2double(get(hObject,'String')) returns contents of X1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function X1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to X1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function X2_Callback(hObject, eventdata, handles)
+% hObject    handle to X2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global X2 ;
+X2 = str2num(get(hObject, 'String')) ;
+fprintf('contours axes X2 = %d\n' , X2) ;
+drawContours(handles) ;
+% Hints: get(hObject,'String') returns contents of X2 as text
+%        str2double(get(hObject,'String')) returns contents of X2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function X2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to X2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in launch.
+function launch_Callback(hObject, eventdata, handles)
+% hObject    handle to launch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+ [F, error, iteration, X]=ES(mu , lambda, n_x , limits, iterationCount , errorThreshold , fitness, sigma)
+
+
+
+function mu_Callback(hObject, eventdata, handles)
+% hObject    handle to mu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global mu ;
+mu = str2double(get(hObject, 'String')) ;
+fprintf('selected mu : %d \n' , mu) ;
+
+% Hints: get(hObject,'String') returns contents of mu as text
+%        str2double(get(hObject,'String')) returns contents of mu as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function mu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to mu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function lambda_Callback(hObject, eventdata, handles)
+% hObject    handle to lambda (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global lambda ;
+lambda = str2double(get(hObject,'String'));
+fprintf('selected lambda : %d \n', lambda) ;
+% Hints: get(hObject,'String') returns contents of lambda as text
+%        str2double(get(hObject,'String')) returns contents of lambda as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function lambda_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to lambda (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in muPlusLambda.
+function muPlusLambda_Callback(hObject, eventdata, handles)
+% hObject    handle to muPlusLambda (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global selectionModel ;
+selectionModel = 'plus' ;
+fprintf('Selection Model : mu PLUS lambda \n') ;
+% Hint: get(hObject,'Value') returns toggle state of muPlusLambda
+
+
+% --- Executes on button press in muLambda.
+function muLambda_Callback(hObject, eventdata, handles)
+% hObject    handle to muLambda (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global selectionModel ;
+selectionModel = 'comma' ;
+fprintf('Selection Model : mu COMMA lambda \n') ;
+% Hint: get(hObject,'Value') returns toggle state of muLambda
