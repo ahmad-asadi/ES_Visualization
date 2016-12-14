@@ -1,32 +1,59 @@
-function [F, error, iteration, X]=ES(mu , lambda, n_x , limits, iterationCount , errorThreshold , fitness, sigma)
+function [F, error, iteration, X]=ES(mu , lambda, n_x , limits, iterationCount , errorThreshold , fitness, sigma, dims, handles)
 
     iteration = 0 ;
-    error = Inf(1) ;
+    error = 1 ;
+    
+    prev_error = 1 ;
+    
+    XMesh = limits(dims(1),1) :0.5: limits(dims(1),2) ;
+    YMesh = limits(dims(2),1) :0.5: limits(dims(2),2) ;
+    TMesh = limits(dims(2),1) :0.5: limits(dims(2),2) ;
+    RMesh = limits(dims(2),1) :0.5: limits(dims(2),2) ;
+    FMesh = limits(dims(2),1) :0.5: limits(dims(2),2) ;
+    
+    ZMesh = zeros(size(XMesh , 2) , size(YMesh , 2)) ;
+    for i = 1 : size(XMesh , 2)
+        for j = 1 : size(YMesh , 2)
+            ZMesh(j,i) = fitness([XMesh(1,i) , YMesh(1,j)]) ;
+        end
+    end
+
     
     X = generate_population(mu, n_x , limits);
     F = evaluate_population_fitness(X , fitness) ;
-    
+    axes(handles.population) ;
+        axis([limits(1,1) , limits(1,2) , limits(2,1) , limits(2,2) , 0 , 1])  ;
+    rotate3d on ;
     while(error > errorThreshold && iteration < iterationCount)
+        set(handles.currentIteration, 'string' , iteration) ;
         selected_parents = select_parents(X,F,mu,lambda) ;
-        children = recombination(selected_parents, sigma) ;
+        children = recombination(selected_parents, sigma , lambda) ;
         children = mutate(children);
         children_F = evaluate_population_fitness(children , fitness) ;
-        [X,F] = select_population(selected_parents , F , children, children_F, lambda) ;
-        prev_error = error ;
+        [X,F] = select_population(selected_parents , F , children, children_F, mu) ;
+        prev_error = [prev_error error] ;
         error = calculate_error(F) ;
+        set(handles.currentError , 'string' , error) ;
 %         if(iteration > 2)
 %             plot([iteration - 1 , iteration] , [prev_error, error]) ;
 %             hold on ;
 %             drawnow ;
 %         end
         iteration = iteration + 1 ;
-        ezsurf('1/(1+x1^2 + x2^2)' , [limits(1,1) , limits(1,2) , limits(2,1) , limits(2,2)]) ;
+        axes(handles.population) ;
+        contour(XMesh , YMesh , ZMesh , 30);
         hold on ;
-        scatter(X(:,1) , X(:,2)) ;
-        axis([limits(1,1) , limits(1,2) , limits(2,1) , limits(2,2)])  ;
+        scatter3(X(:,dims(1)) , X(:,dims(2)) , F , [], repmat([1,0,0],size(X,1),1) , 'filled') ;
         drawnow;
-%        hold off;
+        hold off;
     end
+    axes(handles.error) ;
+    rotate3d on ;
+    if(iteration < iterationCount) % reached error threshold
+        iteration = iteration - 1 ;
+    end
+    plot(prev_error(max(1,end - iterationCount + 3) : end)) ;
+    
     
 end
 
@@ -48,25 +75,28 @@ function parents = select_parents(X , F , mu , lambda)
     parents = X ;
 end
 
-function children = recombination(selected_parents, sigma)
-    children = selected_parents + sigma * rand(size(selected_parents,1) , size(selected_parents,2)) ;
+function children = recombination(selected_parents, sigma, lambda)
+    children = zeros(lambda , size(selected_parents,2)) ;
+    for i = 1 : lambda
+        children(i,:) = selected_parents(mod(i,size(selected_parents,1)) + 1 , : ) + sigma * rand(1 , size(selected_parents,2)) ;
+    end
 end
 
 function children = mutate(children)
 end
 
-function [X,F] = select_population(parents, parents_fitness , children , children_fitness , lambda)
-    X = zeros(lambda, size(parents,2)) ;
-    F = zeros(lambda, 1) ;
+function [X,F] = select_population(parents, parents_fitness , children , children_fitness , mu)
+    X = zeros(mu, size(parents,2)) ;
+    F = zeros(mu, 1) ;
     current_population = [parents;children] ;
     current_fitnesses = [parents_fitness; children_fitness] ;
     [~,sorted_fitnesses] = sort(current_fitnesses , 'descend') ;
-    for i = 1 : lambda
+    for i = 1 : mu
         X(i,:) = current_population(sorted_fitnesses(i),:) ;
         F(i,1) = current_fitnesses(sorted_fitnesses(i),1) ;
     end
 end
 
 function error = calculate_error(F)
-    error = abs(1 - F(1)) ;
+    error = sum(F.^2) ;
 end

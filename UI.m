@@ -22,7 +22,7 @@ function varargout = UI(varargin)
 
 % Edit the above text to modify the response to help UI
 
-% Last Modified by GUIDE v2.5 13-Dec-2016 10:06:11
+% Last Modified by GUIDE v2.5 13-Dec-2016 15:42:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -50,16 +50,25 @@ function initialization(handles)
     func_num = 1 ;
     global X1 ;
     global X2 ;
+    global n_x ;
     X1 = 1 ;
     X2 = 2 ;
+    n_x = 2 ;
     
     global mu ;
     global lambda ;
+    global initSigma ;
     mu = 1 ;
     lambda = 1 ;
+    initSigma = 0.1 ;
     
     global selectionModel ;
     selectionModel = 'comma' ;
+    
+    global errorThreshold ;
+    global maxIteration ;
+    errorThreshold = 0 ;
+    maxIteration = 100 ;
     
     drawContours(handles) ;
     
@@ -135,7 +144,7 @@ function edit2_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit2_CreateFcn(hObject, eventdata, handles)
+function edit2_CreateFcn(hObject, ~, handles)
 % hObject    handle to edit2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -217,7 +226,7 @@ end
 
 
 
-function edit15_Callback(hObject, eventdata, handles)
+function edit15_Callback(~, eventdata, handles)
 % hObject    handle to edit15 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -263,7 +272,7 @@ end
 
 
 % --- Executes on selection change in popupmenu6.
-function popupmenu6_Callback(hObject, eventdata, handles)
+function popupmenu6_Callback(hObject, ~, ~)
 % hObject    handle to popupmenu6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -273,7 +282,7 @@ function popupmenu6_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu6_CreateFcn(hObject, eventdata, handles)
+function popupmenu6_CreateFcn(hObject, ~, handles)
 % hObject    handle to popupmenu6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -473,7 +482,7 @@ end
 
 
 % --- Executes on selection change in popupmenu5.
-function popupmenu5_Callback(hObject, eventdata, handles)
+function popupmenu5_Callback(hObject, ~, handles)
 % hObject    handle to popupmenu5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -506,7 +515,7 @@ function edit11_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function edit11_CreateFcn(hObject, eventdata, handles)
+function edit11_CreateFcn(hObject, eventdata, ~)
 % hObject    handle to edit11 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2231,8 +2240,25 @@ function launch_Callback(hObject, eventdata, handles)
 % hObject    handle to launch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global mu ;
+global lambda ;
+global maxIteration ;
+global errorThreshold ;
+global initSigma ;
+global n_x;
+global X1 ;
+global X2 ;
+global func_num ;
 
- [F, error, iteration, X]=ES(mu , lambda, n_x , limits, iterationCount , errorThreshold , fitness, sigma)
+dims = [X1 ; X2] ;
+
+[limits , fitness] = getFitnessFunction(func_num, n_x) ;
+
+[F, error, iteration, X] = ES(mu , lambda, n_x , limits, ...
+                                    maxIteration , errorThreshold,  ...
+                                    fitness, initSigma, dims ,handles) ;
+ 
+ disp('finished') ;
 
 
 
@@ -2306,3 +2332,149 @@ global selectionModel ;
 selectionModel = 'comma' ;
 fprintf('Selection Model : mu COMMA lambda \n') ;
 % Hint: get(hObject,'Value') returns toggle state of muLambda
+
+
+
+function maxIteration_Callback(hObject, eventdata, handles)
+% hObject    handle to maxIteration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global maxIteration ;
+maxIteration = str2double(get(hObject, 'String')) ;
+fprintf('Selected maximum iteration count : %d \n' , maxIteration) ;
+% Hints: get(hObject,'String') returns contents of maxIteration as text
+%        str2double(get(hObject,'String')) returns contents of maxIteration as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function maxIteration_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to maxIteration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function errorThreshold_Callback(hObject, eventdata, handles)
+% hObject    handle to errorThreshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global errorThreshold ;
+errorThreshold = str2double(get(hObject, 'String')) ;
+fprintf('Selected error threshold : %d \n' , errorThreshold) ;
+% Hints: get(hObject,'String') returns contents of errorThreshold as text
+%        str2double(get(hObject,'String')) returns contents of errorThreshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function errorThreshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to errorThreshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function initSigma_Callback(hObject, eventdata, handles)
+% hObject    handle to initSigma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global initSigma ;
+initSigma = str2double(get(hObject,'String')) ;
+fprintf('Selected initial Sigma : %d \n', initSigma) ;
+% Hints: get(hObject,'String') returns contents of initSigma as text
+%        str2double(get(hObject,'String')) returns contents of initSigma as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function initSigma_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to initSigma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function currentIteration_Callback(hObject, eventdata, handles)
+% hObject    handle to currentIteration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of currentIteration as text
+%        str2double(get(hObject,'String')) returns contents of currentIteration as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function currentIteration_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to currentIteration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function currentError_Callback(hObject, eventdata, handles)
+% hObject    handle to currentError (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of currentError as text
+%        str2double(get(hObject,'String')) returns contents of currentError as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function currentError_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to currentError (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function n_x_Callback(hObject, eventdata, handles)
+% hObject    handle to n_x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global n_x ;
+n_x = str2double(get(hObject,'String')) ;
+fprintf('Selected N : %d \n' , n_x) ;
+% Hints: get(hObject,'String') returns contents of n_x as text
+%        str2double(get(hObject,'String')) returns contents of n_x as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function n_x_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to n_x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
