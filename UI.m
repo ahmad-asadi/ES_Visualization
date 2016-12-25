@@ -22,7 +22,7 @@ function varargout = UI(varargin)
 
 % Edit the above text to modify the response to help UI
 
-% Last Modified by GUIDE v2.5 13-Dec-2016 15:42:55
+% Last Modified by GUIDE v2.5 25-Dec-2016 19:52:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,12 +63,21 @@ function initialization(handles)
     initSigma = 0.1 ;
     
     global selectionModel ;
-    selectionModel = 'comma' ;
+    selectionModel = 1 ;
     
     global errorThreshold ;
     global maxIteration ;
     errorThreshold = 0 ;
     maxIteration = 100 ;
+    
+    global strategy ;
+    strategy = 0 ; % 0 -> singleSigma, 1-> multipleSigma, 2 -> covariance matrix
+    
+    global successRateStrategy ;
+    global successRate ;
+    successRateStrategy = 0 ;
+    successRate = 0.2 ;
+    
     
     drawContours(handles) ;
     
@@ -78,7 +87,7 @@ function drawContours(handles)
     global X1 ;
     global X2 ;
     global selected_benchmark_function ;
-    axes(handles.contours) ;
+    axes(handles.fitness) ;
     selected_benchmark_function = drawBenchmarkContours(func_num , X1, X2);
 
 % --- Executes just before UI is made visible.
@@ -2249,6 +2258,10 @@ global n_x;
 global X1 ;
 global X2 ;
 global func_num ;
+global selectionModel;
+global strategy ;
+global successRateStrategy ;
+global successRate ;
 
 dims = [X1 ; X2] ;
 
@@ -2256,7 +2269,8 @@ dims = [X1 ; X2] ;
 
 [F, error, iteration, X] = ES(mu , lambda, n_x , limits, ...
                                     maxIteration , errorThreshold,  ...
-                                    fitness, initSigma, dims ,handles) ;
+                                    fitness, initSigma, dims , selectionModel, ...
+                                    successRateStrategy, successRate, strategy,handles) ;
  
  disp('finished') ;
 
@@ -2318,7 +2332,7 @@ function muPlusLambda_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global selectionModel ;
-selectionModel = 'plus' ;
+selectionModel = 1 ;
 fprintf('Selection Model : mu PLUS lambda \n') ;
 % Hint: get(hObject,'Value') returns toggle state of muPlusLambda
 
@@ -2329,7 +2343,7 @@ function muLambda_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global selectionModel ;
-selectionModel = 'comma' ;
+selectionModel = 0 ;
 fprintf('Selection Model : mu COMMA lambda \n') ;
 % Hint: get(hObject,'Value') returns toggle state of muLambda
 
@@ -2478,3 +2492,72 @@ function n_x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+function succesRate_Callback(hObject, eventdata, handles)
+% hObject    handle to succesRate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global successRate ;
+successRate = str2double(get(hObject, 'String')) ;
+fprintf('Selected success rate: %d\n' , successRate) ;
+% Hints: get(hObject,'String') returns contents of succesRate as text
+%        str2double(get(hObject,'String')) returns contents of succesRate as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function succesRate_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to succesRate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in singleSigma.
+function singleSigma_Callback(hObject, eventdata, handles)
+% hObject    handle to singleSigma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global strategy ;
+strategy = 0 ;
+disp('Selected strategy: single sigma') ;
+% Hint: get(hObject,'Value') returns toggle state of singleSigma
+
+
+% --- Executes on button press in successRateStrategy.
+function successRateStrategy_Callback(hObject, eventdata, handles)
+% hObject    handle to successRateStrategy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global successRateStrategy ;
+successRateStrategy = str2num(get(hObject,'Value')) ;
+fprintf('Success Rate Strategy: %d\n' , successRateStrategy) ;
+% Hint: get(hObject,'Value') returns toggle state of successRateStrategy
+
+
+% --- Executes on button press in multipleSigma.
+function multipleSigma_Callback(hObject, eventdata, handles)
+% hObject    handle to multipleSigma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global strategy ;
+strategy = 1 ;
+disp('Selected strategy: multiple sigma') ;
+% Hint: get(hObject,'Value') returns toggle state of multipleSigma
+
+
+% --- Executes on button press in covarianceMode.
+function covarianceMode_Callback(hObject, eventdata, handles)
+% hObject    handle to covarianceMode (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global strategy ;
+strategy = 2 ;
+disp('Selected strategy: covariance matrix') ;
+% Hint: get(hObject,'Value') returns toggle state of covarianceMode
